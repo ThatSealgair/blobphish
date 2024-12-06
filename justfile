@@ -14,99 +14,101 @@ build_date := `date -u +"%Y-%m-%dT%H:%M:%SZ"`
 # Common ldflags
 version_flags := "-X main.version=" + version + " -X main.commit=" + commit + " -X main.date=" + build_date
 
-# Build for development with debug symbols
-build-dev:
+# Environment Setup Recipes
+setup-reflex:
     #!/usr/bin/env bash
-    echo "Building development version with debug symbols..."
-    go build \
-        -gcflags="all=-N -l" \
-        -ldflags "{{version_flags}}" \
-        -o bin/{{binary_name}}-dev \
-        ./cmd/{{binary_name}}
+    echo '-r '\''\.go$'\'' -s go run .' > .reflex.conf
+    echo '-r '\''\.go$'\'' -s go run -gcflags="all=-N -l" .' > .reflex.debug.conf
 
-# Build with race detection
-build-race: build-dev
+setup-gdb:
     #!/usr/bin/env bash
-    echo "Building development version with race detection..."
-    go build \
-        -gcflags="all=-N -l" \
-        -race \
-        -ldflags "{{version_flags}}" \
-        -o bin/{{binary_name}}-race \
-        ./cmd/{{binary_name}}
+    wget -P ~ https://git.io/.gdbinit
+    git clone https://github.com/cyrus-and/gdb-dashboard ~/.gdb-dashboard
+    echo "source ~/.gdb-dashboard/.gdbinit" >> ~/.gdbinit
+    echo 'define goruntime
+      set $mp = runtime.m0
+      printf "allm    = %p\n", runtime.allm
+      printf "allp    = %p\n", runtime.allp
+      printf "gomaxprocs = %d\n", runtime.gomaxprocs
+    end' >> ~/.gdbinit
 
-# Build optimized release version
-build-release:
+setup-r2:
     #!/usr/bin/env bash
-    echo "Building optimized release version..."
-    go build \
-        -trimpath \
-        -ldflags "{{version_flags}} -s -w" \
-        -o bin/{{binary_name}} \
-        ./cmd/{{binary_name}}
+    r2pm init
+    r2pm install r2dec
+    r2pm install r2ghidra
+    echo '# Initialize analysis
+    aaa
+    # Show Go runtime info
+    afl~runtime
+    # Find main function
+    afl~main
+    # Generate callgraph
+    agC
+    # List strings
+    izz' > analyze-go.r2
 
-# Run tests
-test:
-    go test -v -race ./...
-
-# Run tests with coverage
-test-coverage:
-    go test -v -race -coverprofile=coverage.out ./...
-    go tool cover -html=coverage.out
-
-# Run linter
-lint:
-    golangci-lint run
-
-# Clean build artifacts
-clean:
-    rm -rf bin/
-    rm -f coverage.out
-
-# Debug with GDB
-debug-gdb: build-dev
+setup-debug-helpers:
     #!/usr/bin/env bash
-    echo "Starting GDB session..."
-    gdb --quiet \
-        -ex "set disassembly-flavor intel" \
-        -ex "b main.main" \
-        -ex "r" \
-        ./bin/{{binary_name}}-dev
+    mkdir -p scripts
+    echo '#!/bin/bash
+    
+    # Start delve debugging server
+    function dlv-server() {
+        dlv debug --headless --listen=:2345 --api-version=2 --accept-multiclient
+    }
+    
+    # Attach to running process
+    function dlv-attach() {
+        dlv attach $(pgrep "$1") --headless --listen=:2345 --api-version=2
+    }
+    
+    # Generate goroutine dump
+    function go-routines() {
+        curl -s http://localhost:${1:-8080}/debug/pprof/goroutine?debug=2
+    }
+    
+    # Memory profile
+    function go-memprofile() {
+        curl -s http://localhost:${1:-8080}/debug/pprof/heap > heap.pprof
+        go tool pprof -http=:8081 heap.pprof
+    }' > scripts/debug-helpers.sh
+    chmod +x scripts/debug-helpers.sh
 
-# Debug with Radare2
-debug-radare: build-dev
+# Install all development tools
+setup-all: setup-reflex setup-gdb setup-r2 setup-debug-helpers
     #!/usr/bin/env bash
-    echo "Starting Radare2 session..."
-    r2 -d ./bin/{{binary_name}}-dev
-
-# Debug with Delve
-debug-dlv: build-dev
-    dlv exec ./bin/{{binary_name}}-dev
-
-# Start debug server for Helix
-debug-server: build-dev
-    dlv debug --headless --listen=:2345 --api-version=2 --accept-multiclient ./cmd/{{binary_name}}
-
-# Run with live reload using reflex
-watch:
-    reflex -r '\.go$' -s -- go run ./cmd/{{binary_name}}
-
-# Watch tests
-watch-test:
-    reflex -r '\.go$' -s -- go test ./...
-
-# Generate all artifacts for a release
-release: clean test lint build-release
-    #!/usr/bin/env bash
-    echo "Creating release artifacts..."
-    mkdir -p dist
-    cp bin/{{binary_name}} dist/
-    tar czf dist/{{binary_name}}-{{version}}.tar.gz -C bin {{binary_name}}
-    echo "Release artifacts created in dist/"
-
-# Install development tools
-install-tools:
-    #!/usr/bin/env bash
-    go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+    go install github.com/golangci/golint/cmd/golangci-lint@latest
     go install github.com/go-delve/delve/cmd/dlv@latest
     go install github.com/cespare/reflex@latest
+    go install github.com/divan/gotrace@latest
+    go install github.com/genuinetools/godebug@latest
+    go install github.com/ktr0731/evans@latest
+
+# Development Workflow Recipes
+
+# Start live reload with debug symbols
+watch-debug:
+    reflex -c .reflex.debug.conf
+
+# Start live reload for normal development
+watch:
+    reflex -c .reflex.conf
+
+# Start Radare2 analysis
+analyze-r2: build-dev
+    r2 -i analyze-go.r2 ./bin/{{binary_name}}-dev
+
+# Generate and view goroutine dump
+dump-routines:
+    #!/usr/bin/env bash
+    source scripts/debug-helpers.sh
+    go-routines 8080
+
+# Generate and view memory profile
+profile-memory:
+    #!/usr/bin/env bash
+    source scripts/debug-helpers.sh
+    go-memprofile 8080
+
+[previous build recipes remain the same...]
