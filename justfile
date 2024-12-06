@@ -43,6 +43,126 @@ race_flags := "-race"
 export R2_ANALYSIS_SCRIPT := "./tools/r2/analyze-go.r2"
 export GDB_INIT_FILE := "./tools/gdb/project.gdb"
 
+# ===== Help Commands =====
+
+# Show all available commands
+list-commands:
+    @just --list
+
+# Show quick start guide
+help:
+    @echo "Quick Start Guide:"
+    @echo "1. First time setup:    just install-dev-tools"
+    @echo "2. Build project:       just build-dev"
+    @echo "3. Run all tests:       just test"
+    @echo "4. Run all checks:      just check"
+    @echo ""
+    @echo "Use 'just help-<topic>' for more information:"
+    @echo "  - help-build:     Build commands"
+    @echo "  - help-test:      Testing commands"
+    @echo "  - help-debug:     Debugging tools"
+    @echo "  - help-profile:   Profiling tools"
+    @echo "  - help-checks:    Code analysis"
+    @echo "  - help-tools:     Tool management"
+
+# Show build help
+help-build:
+    @echo "Build Commands:"
+    @echo "  just build-dev              Build with debug symbols"
+    @echo "  just build-race            Build with race detector"
+    @echo "  just build-release         Build optimized release version"
+    @echo ""
+    @echo "Build artifacts are placed in ./bin/"
+    @echo "Use clean to remove build artifacts: just clean"
+
+# Show test help
+help-test:
+    @echo "Test Commands:"
+    @echo "  just test                  Run all tests"
+    @echo "  just test-pattern <pat>    Run tests matching pattern"
+    @echo "  just test-coverage         Run tests with coverage"
+    @echo "  just test-bench [pat]      Run benchmarks"
+    @echo "  just test-debug            Build test binary for debugging"
+    @echo ""
+    @echo "Coverage report will be in .debug/coverage.html"
+
+# Show debug help
+help-debug:
+    @echo "Debug Commands:"
+    @echo "  just debug-dlv             Debug with Delve"
+    @echo "  just debug-pwndbg <bin>    Debug with pwndbg"
+    @echo "  just debug-gef <bin>       Debug with GEF"
+    @echo "  just debug-server          Start headless debug server"
+    @echo ""
+    @echo "Record & Replay:"
+    @echo "  just rr-record <bin>       Record program execution"
+    @echo "  just rr-replay             Replay recorded execution"
+    @echo "  just rr-replay-reverse     Replay in reverse"
+    @echo ""
+    @echo "Core Dumps:"
+    @echo "  just debug-core <core> <bin>  Analyze core dump"
+
+# Show profiling help
+help-profile:
+    @echo "Profiling Commands:"
+    @echo "  just profile-cpu <bin> [duration]  CPU profile"
+    @echo "  just profile-mem <bin> [duration]  Memory profile"
+    @echo ""
+    @echo "Default duration is 30s"
+    @echo "Profiles are viewed in browser at localhost:8080"
+
+# Show code analysis help
+help-checks:
+    @echo "Analysis Commands:"
+    @echo "  just check                 Run all checks"
+    @echo "  just check-fmt             Format code"
+    @echo "  just check-vet             Run go vet"
+    @echo "  just check-staticcheck     Run staticcheck"
+    @echo "  just check-errcheck        Check error handling"
+    @echo "  just check-unconvert       Find unnecessary conversions"
+    @echo "  just check-vuln            Check for vulnerabilities"
+    @echo "  just check-ineffassign     Find ineffective assignments"
+    @echo "  just analyze-structs       Analyze struct layouts"
+
+# Show tool management help
+help-tools:
+    @echo "Tool Management:"
+    @echo "  just install-dev-tools     Install all development tools"
+    @echo "  just install-go-tools      Install Go-specific tools"
+    @echo "  just install-debug-tools   Install debugging tools"
+    @echo ""
+    @echo "Individual Debug Tools:"
+    @echo "  just install-pwndbg        Install pwndbg"
+    @echo "  just install-gef           Install GEF"
+    @echo "  just install-rr            Install rr"
+
+# Show examples of common workflows
+help-examples:
+    @echo "Common Workflows:"
+    @echo ""
+    @echo "1. Start development:"
+    @echo "   just build-dev"
+    @echo "   just test"
+    @echo "   just check"
+    @echo ""
+    @echo "2. Debug an issue:"
+    @echo "   just build-dev"
+    @echo "   just debug-dlv"
+    @echo ""
+    @echo "3. Profile performance:"
+    @echo "   just build-release"
+    @echo "   just profile-cpu bin/myapp"
+    @echo ""
+    @echo "4. Prepare for commit:"
+    @echo "   just check"
+    @echo "   just test"
+    @echo "   just check-vuln"
+    @echo ""
+    @echo "5. Create release:"
+    @echo "   just check"
+    @echo "   just test"
+    @echo "   just release"
+
 # ===== Prerequisite Checks =====
 
 # Check if Go is installed
@@ -238,6 +358,32 @@ check-memory:
     go test -race ./...
     go test -msan ./...  # If using clang compiler
 
+# ===== Test Commands =====
+
+# Run all tests
+test:
+    go test -v -race ./...
+
+# Run tests matching a pattern
+test-pattern PATTERN:
+    go test -v -race ./... -run {{PATTERN}}
+
+# Run tests with coverage
+test-coverage:
+    #!/bin/bash
+    mkdir -p {{debug_dir}}
+    go test -v -race -coverprofile={{debug_dir}}/coverage.out ./...
+    go tool cover -html={{debug_dir}}/coverage.out -o {{debug_dir}}/coverage.html
+    xdg-open {{debug_dir}}/coverage.html 2>/dev/null || open {{debug_dir}}/coverage.html 2>/dev/null || echo "Coverage report at {{debug_dir}}/coverage.html"
+
+# Run benchmarks
+test-bench pattern="":
+    go test -v -run=NONE -bench={{pattern}} -benchmem ./...
+
+# Run tests in verbose mode with race detection and generate test binary for debugging
+test-debug:
+    go test -v -race -c -o {{bin_dir}}/test.test ./...
+
 # ===== Debug Commands =====
 
 # Start debug session with pwndbg
@@ -322,27 +468,3 @@ release: clean test check build-release
     cp {{bin_dir}}/{{binary}} {{dist_dir}}/
     tar czf {{dist_dir}}/{{binary}}-{{version}}.tar.gz -C {{bin_dir}} {{binary}}
     echo "Release artifacts created in {{dist_dir}}/"
-
-# ===== Help Commands =====
-
-# Show all available commands
-list-commands:
-    @just --list
-
-# Show all available checks
-list-checks:
-    @echo "Available checks:"
-    @echo "  - check-fmt: Format code using gofumpt"
-    @echo "  - check-vet: Run go vet with all checks"
-    @echo "  - check-staticcheck: Run staticcheck"
-    @echo "  - check-errcheck: Check error handling"
-    @echo "  - check-unconvert: Check unnecessary conversions"
-    @echo "  - check-vuln: Check for vulnerabilities"
-    @echo "  - check-ineffassign: Check ineffective assignments"
-    @echo "  - check-imports: Check and fix imports"
-    @echo "  - analyze-structs: Analyze struct layouts"
-    @echo "  - check-memory: Run memory checks"
-
-# Default recipe to show help
-default:
-    @just --list
