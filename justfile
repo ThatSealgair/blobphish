@@ -35,7 +35,8 @@ tools_dir := "tools"
 
 # Build flags
 version_flags := "-X main.version=" + version + " -X main.commit=" + commit + " -X main.date=" + build_date
-debug_flags := "-gcflags=all=-N -l"
+
+debug_flags := "-gcflags=all='-N -L -K'"
 release_flags := "-trimpath -ldflags='" + version_flags + " -s -w'"
 race_flags := "-race"
 

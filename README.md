@@ -72,6 +72,47 @@ just list-commands
 just list-checks
 ```
 
+### Planned Project Structure
+``` bash
+blobphish/
+├── cmd/
+│   └── blobphish/
+│       └── main.go               # Entry point
+├── internal/
+│   ├── analyze/
+│   │   ├── email.go              # Email analysis logic
+│   │   ├── ip.go                 # IP analysis logic
+│   │   ├── url.go                # URL analysis logic
+│   │   └── webpage.go            # Webpage analysis logic
+│   ├── recon/
+│   │   ├── passive.go            # Passive reconnaissance
+│   │   └── active.go             # Active reconnaissance
+│   ├── uno/
+│   │   └── vulnerabilities.go    # Vulnerability analysis
+│   ├── config/
+│   │   ├── config.go
+│   │   └── validation.go
+│   ├── integrations/
+│   │   ├── misp.go               # Interface with MISP
+│   │   ├── request_tracker.go    # Interface with RT
+│   │   ├── open_cti.go           # Interface with OpenCTI
+│   │   └── shodan.go
+│   ├── shared/
+│   │   └── types.go              # Shared types and interfaces
+│   ├── output/
+│   │   ├── logger.go             # Logging implementation
+│   │   ├── formatter.go          # Output formatting
+│   │   ├── report.go    	        # Generate report based on findings (markdown only)
+│   │   └── writer.go             # File writing utilities
+│   └── cli/
+│       ├── commands.go           # Command definitions
+│       └── flags.go              # Flag definitions
+├── configs/
+│   └── default.json              # Default configuration
+├── go.mod
+└── go.sum
+```
+
 ### Development Workflow
 
 1. Building:
