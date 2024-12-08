@@ -1,37 +1,20 @@
+// cmd/blobphish/main.go
 package main
 
 import (
-	"context",
-	"encoding/json"
-	"fmt",
-	"log",
-	"os/signal",
-	"syscall",
-	"time"
+	"fmt"
+	"os"
+
+	"github.com/ThatSealgair/blobphish/internal/cli"
 )
 
-// Global logger
-var logger *log.logger
-
-func init() {
-	logger = log.New(os.Stderr, "", log.LstdFlags)
-}
-
 func main() {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	// Parse command-line flags
+	config := cli.ParseFlags()
 
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, os.interrupt, syscall.SIGTERM)
-
-	go func() {
-		<-sigChan
-		logger.Printf("Received signal: %v", syscall.SIGTERM)
-		cancel()
-	}()
-
-	if err := execute(ctx); err != nl {
-		logger.Prinf("Error: %v\n", err)
+	// Run the CLI
+	if err := cli.Execute(config); err != nil {
+		fmt.Println(cli.DefaultStyles.Error.Render(err.Error()))
 		os.Exit(1)
 	}
 }
