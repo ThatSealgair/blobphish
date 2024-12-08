@@ -1,0 +1,68 @@
+name: /home/sealgair/go/bin/gopls
+type: file
+size: 31.5 MiB
+modified: Fri, 6 Dec 2024 19:38:32 +1000 (2 days ago)
+name: /home/sealgair/go/bin/goimports
+type: file
+size: 6.5 MiB
+modified: Mon, 9 Dec 2024 01:43:42 +1000 (2 hours ago)
+name: /home/sealgair/go/bin/dlv
+type: file
+size: 19.5 MiB
+modified: Fri, 6 Dec 2024 20:50:50 +1000 (2 days ago)
+name: /home/sealgair/go/bin/golangci-lint-langserver
+type: file
+size: 3.2 MiB
+modified: Fri, 6 Dec 2024 19:38:44 +1000 (2 days ago)
+name: /home/sealgair/go/bin/golangci-lint
+type: file
+size: 52.3 MiB
+modified: Fri, 6 Dec 2024 19:40:25 +1000 (2 days ago)
+name: /home/sealgair/go/bin/staticcheck
+type: file
+size: 13.7 MiB
+modified: Mon, 9 Dec 2024 01:32:15 +1000 (2 hours ago)
+name: /home/sealgair/go/bin/unconvert
+type: file
+size: 6.9 MiB
+modified: Fri, 6 Dec 2024 20:50:40 +1000 (2 days ago)
+name: /home/sealgair/go/bin/errcheck
+type: file
+size: 6.4 MiB
+modified: Mon, 9 Dec 2024 01:31:12 +1000 (2 hours ago)
+name: /home/sealgair/go/bin/govulncheck
+type: file
+size: 13.1 MiB
+modified: Fri, 6 Dec 2024 20:50:43 +1000 (2 days ago)
+name: /home/sealgair/go/bin/ineffassign
+type: file
+size: 6.4 MiB
+modified: Fri, 6 Dec 2024 20:50:44 +1000 (2 days ago)
+name: /home/sealgair/go/bin/gofumpt
+type: file
+size: 5.8 MiB
+modified: Mon, 9 Dec 2024 01:01:03 +1000 (2 hours ago)
+name: /home/sealgair/go/bin/ginkgo
+type: file
+size: 13.7 MiB
+modified: Mon, 9 Dec 2024 01:05:29 +1000 (2 hours ago)
+name: /home/sealgair/go/bin/gosec
+type: file
+size: 28.2 MiB
+modified: Mon, 9 Dec 2024 01:16:40 +1000 (2 hours ago)
+name: /home/sealgair/go/bin/revive
+type: file
+size: 12.2 MiB
+modified: Mon, 9 Dec 2024 01:22:54 +1000 (2 hours ago)
+name: /home/sealgair/go/bin/goconst
+type: file
+size: 3.6 MiB
+modified: Mon, 9 Dec 2024 01:33:43 +1000 (2 hours ago)
+name: /home/sealgair/go/bin/callgraph
+type: file
+size: 8.8 MiB
+modified: Mon, 9 Dec 2024 01:44:20 +1000 (2 hours ago)
+name: /home/sealgair/go/bin/go-pry
+type: file
+size: 7.9 MiB
+modified: Mon, 9 Dec 2024 01:56:06 +1000 (2 hours ago)
