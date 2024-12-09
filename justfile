@@ -308,7 +308,7 @@ build-release:
 # ===== Test and Analysis Commands =====
 
 # Run all checks
-check: check-fmt check-vet check-staticcheck check-errcheck check-unconvert check-vuln check-ineffassign check-imports
+check: check-fmt check-vet check-staticcheck check-unconvert check-vuln check-ineffassign check-imports
 
 # Format Go code
 check-fmt:

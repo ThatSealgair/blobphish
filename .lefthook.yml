@@ -1,0 +1,53 @@
+# lefthook.yml
+pre-commit:
+  parallel: true
+  commands:
+    gofmt:
+      glob: "*.go"
+      # simplify code, report all errors, list files, save formatting
+      run: gofmt -s -e -l .
+    
+    go-lint:
+      glob: "*.go"
+      run: revive {staged_files}
+    
+    go-vet:
+      glob: "*.go"
+      run: go vet ./...
+    
+    go-test:
+      glob: "*.go"
+      run: go test ./... -race -short
+    
+    goimports:
+      glob: "*.go"
+      run: |
+        # Check if any files need import formatting
+        files=$(goimports -l {staged_files})
+        if [ -n "$files" ]; then
+          echo "🔴 These files need import formatting:"
+          echo "$files"
+          echo "Run 'goimports -w' to format the files"
+          exit 1
+        fi
+    
+    staticcheck:
+      glob: "*.go"
+      run: staticcheck ./...
+
+    go-mod-tidy:
+      files: git diff --name-only HEAD @{push}
+      glob: "go.mod"
+      run: go mod tidy -v
+
+
+
+  verify-modules:
+      glob: "go.{mod,sum}"
+      run: |
+        # Verify dependencies
+        go mod verify
+        # Ensure go.mod and go.sum are tidy
+        go mod tidy
+        # Check if this created any changes
+        git diff --exit-code go.mod go.sum || (echo "go.mod or go.sum are not tidy" && exit 1)
