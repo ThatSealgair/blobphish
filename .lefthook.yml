@@ -41,7 +41,7 @@ pre-commit:
       run: go mod tidy -v
 
 
-
+pre-push:
   verify-modules:
       glob: "go.{mod,sum}"
       run: |
